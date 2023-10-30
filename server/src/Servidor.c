@@ -28,6 +28,7 @@ void *handle_client(void *data) {
     ClientInfo *clients = thread_data->clients;
     int client_index = thread_data->client_index;
     char buffer[1024];
+    memset(buffer,0,1024);
 
     while (1) {
         int bytes_received = recv(clients[client_index].client_socket, buffer, sizeof(buffer), 0);
@@ -38,7 +39,6 @@ void *handle_client(void *data) {
             printf("Cliente %s se desconectó.\n", clients[client_index].name);
             pthread_exit(NULL);
         }
-        buffer[bytes_received] = '\0';
         
         // Envía el mensaje al compañero emparejado
         if (clients[client_index].paired) {
@@ -94,6 +94,7 @@ int main() {
                 }
             }
         }
+
 
         int activity = select(max_fd + 1, &readfds, NULL, NULL, NULL);
 

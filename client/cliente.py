@@ -50,7 +50,7 @@ def main():
     global bola_y
     global aux
     
-    host = "127.0.0.1"
+    host = "54.159.27.50"
     port = 8080
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))
