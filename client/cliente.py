@@ -23,8 +23,9 @@ def receive_messages(client_socket):
         data = client_socket.recv(1024).decode("utf-8")
         # Analizar el mensaje para obtener la posición de la paleta derecha
 
-        dat = data.split()
+        dat = data.split("|")[0].split()
         print(f"{dat}")
+        
 
         if data.startswith("SUBIO ") or data.startswith("BAJO "):        
                 action = dat[0]
@@ -48,9 +49,9 @@ def main():
     global bola_y
     global aux
 
-   #host = "54.159.27.50"
+    #host = "54.89.162.182"
     host = "127.0.0.1"
-    port = 8082
+    port = 8083
     
 
     name = input("Ingrese su nombre: ") 
@@ -109,20 +110,20 @@ def main():
         pos = ''
         if keys[pygame.K_w] and paddle_a_y > 0:
             paddle_a_y -= paddle_speed
-            pos = "SUBIO " + str(paddle_a_y) + " "
+            pos = "SUBIO " + str(paddle_a_y) + "|"
             client_socket.send(pos.encode())
     
 
         if keys[pygame.K_s] and paddle_a_y < HEIGHT - 80:
             paddle_a_y += paddle_speed
-            pos = "BAJO " + str(paddle_a_y) + " "
+            pos = "BAJO " + str(paddle_a_y) + "|"
             client_socket.send(pos.encode())
 
         # Actualizar la posición de la paleta derecha con la posición global
         paddle_b_y = new_paddle_b_y
 
         if int(aux) % 2 == 0:
-            puntaje = "PUNTAJE " + str(score_a) + " " + str(score_b) + " "
+            puntaje = "PUNTAJE " + str(score_a) + " " + str(score_b) + "|"
             client_socket.send(puntaje.encode())
         else:
             score_a = punt_a
@@ -133,7 +134,7 @@ def main():
             ball_x += ball_speed_x
             ball_y += ball_speed_y   
 
-            posBall = "BOLA " + str(ball_x) + " " + str(ball_y) + " " 
+            posBall = "BOLA " + str(ball_x) + " " + str(ball_y) + "|" 
             #print(posBall)
             client_socket.send(posBall.encode())
         else:
