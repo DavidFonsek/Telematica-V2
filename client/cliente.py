@@ -10,43 +10,35 @@ ballVel = 0.1
 new_paddle_b_y = HEIGHT // 2 - 40
 
 
+
 def receive_messages(client_socket):
     global new_paddle_b_y
     global bola_x
     global bola_y
-    global punt_a
-    global punt_b
+    global punt_a 
+    global punt_b 
     while True:
 
 
-        data = client_socket.recv(1024).decode()
+        data = client_socket.recv(1024).decode("utf-8")
         # Analizar el mensaje para obtener la posición de la paleta derecha
 
-        print(f"[{data}]")
+        dat = data.split()
+        print(f"{dat}")
 
-        if data.startswith("SUBIO ") or data.startswith("BAJO "):
-            try:
-                action, value = data.split()
+        if data.startswith("SUBIO ") or data.startswith("BAJO "):        
+                action = dat[0]
+                value = dat[1]
                 if action == "SUBIO":
                     new_paddle_b_y = float(value)
                 elif action == "BAJO":
                     new_paddle_b_y = float(value)
-            except ValueError:
-                print("Error al analizar la posición recibida.")
         elif data.startswith("BOLA ") and int(aux) % 2 != 0:
-            try:
-                action, posicionX, posicionY = data.split()
-                bola_x = (WIDTH - 20) - float(posicionX)
-                bola_y = float(posicionY)
-            except ValueError:
-                print("Error al procesar la información de la bola.")
+                bola_x = (WIDTH - 20) - float(dat[1])
+                bola_y = float(dat[2])
         elif data.startswith("PUNTAJE ") and int(aux) % 2 != 0:
-            try:
-                dat = data.split()
                 punt_a = int(dat[1])
                 punt_b = int(dat[2])
-            except ValueError:
-                print("Error al procesar la información del puntaje.",dat[1],dat[2])
 
 
 def main():
@@ -56,18 +48,20 @@ def main():
     global bola_y
     global aux
 
+   #host = "54.159.27.50"
     host = "127.0.0.1"
-    port = 5500
+    port = 8082
     
 
-    name = input("Ingrese su nombre: ")
+    name = input("Ingrese su nombre: ") 
+
 
 
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))
 
     client_socket.send(name.encode())
-    aux = client_socket.recv(1).decode()
+    aux = client_socket.recv(1).decode("utf-8")
     print(aux)
     receive_thread = threading.Thread(target=receive_messages, args=(client_socket,))
     receive_thread.start()
@@ -115,13 +109,13 @@ def main():
         pos = ''
         if keys[pygame.K_w] and paddle_a_y > 0:
             paddle_a_y -= paddle_speed
-            pos = "SUBIO " + str(paddle_a_y)
+            pos = "SUBIO " + str(paddle_a_y) + " "
             client_socket.send(pos.encode())
     
 
         if keys[pygame.K_s] and paddle_a_y < HEIGHT - 80:
             paddle_a_y += paddle_speed
-            pos = "BAJO " + str(paddle_a_y)
+            pos = "BAJO " + str(paddle_a_y) + " "
             client_socket.send(pos.encode())
 
         # Actualizar la posición de la paleta derecha con la posición global

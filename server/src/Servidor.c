@@ -7,7 +7,7 @@
 #include <sys/select.h>
 #include <pthread.h>
 
-#define PORT 5500
+#define PORT 8082
 #define MAX_CLIENTS 10
 
 typedef struct {
@@ -31,6 +31,7 @@ void *handle_client(void *data) {
     memset(buffer,0,1024);
 
     while (1) {
+        buffer[1023] = '\0';
         int bytes_received = recv(clients[client_index].client_socket, buffer, sizeof(buffer), 0);
         if (bytes_received <= 0) {
             close(clients[client_index].client_socket);
@@ -40,8 +41,7 @@ void *handle_client(void *data) {
             pthread_exit(NULL);
         }
 
-        buffer[bytes_received] = '\0';
-        printf(buffer,"[ %s ]\n");
+        printf(buffer,"[%s]\n");
         
         // Envía el mensaje al compañero emparejado
         if (clients[client_index].paired) {
