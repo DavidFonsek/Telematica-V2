@@ -2,6 +2,7 @@ import pygame
 import random
 import socket
 import threading
+import time
 
 
 WIDTH, HEIGHT = 1200, 600
@@ -16,8 +17,13 @@ def receive_messages(client_socket):
     global punt_a
     global punt_b
     while True:
+
+
         data = client_socket.recv(1024).decode()
         # Analizar el mensaje para obtener la posición de la paleta derecha
+
+        print(f"[{data}]")
+
         if data.startswith("SUBIO ") or data.startswith("BAJO "):
             try:
                 action, value = data.split()
@@ -36,11 +42,11 @@ def receive_messages(client_socket):
                 print("Error al procesar la información de la bola.")
         elif data.startswith("PUNTAJE ") and int(aux) % 2 != 0:
             try:
-                action, puntA, puntB = data.split()
-                punt_a = int(puntA)
-                punt_b = int(puntB)
+                dat = data.split()
+                punt_a = int(dat[1])
+                punt_b = int(dat[2])
             except ValueError:
-                print("Error al procesar la información del puntaje.")
+                print("Error al procesar la información del puntaje.",dat[1],dat[2])
 
 
 def main():
@@ -49,13 +55,17 @@ def main():
     global bola_x
     global bola_y
     global aux
+
+    host = "127.0.0.1"
+    port = 5500
     
-    host = "54.159.27.50"
-    port = 8080
+
+    name = input("Ingrese su nombre: ")
+
+
     client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     client_socket.connect((host, port))
 
-    name = input("Ingrese su nombre: ")
     client_socket.send(name.encode())
     aux = client_socket.recv(1).decode()
     print(aux)
@@ -118,7 +128,7 @@ def main():
         paddle_b_y = new_paddle_b_y
 
         if int(aux) % 2 == 0:
-            puntaje = "PUNTAJE " + str(score_a) + " " + str(score_b)
+            puntaje = "PUNTAJE " + str(score_a) + " " + str(score_b) + " "
             client_socket.send(puntaje.encode())
         else:
             score_a = punt_a
@@ -129,7 +139,7 @@ def main():
             ball_x += ball_speed_x
             ball_y += ball_speed_y   
 
-            posBall = "BOLA " + str(ball_x) + " " + str(ball_y)
+            posBall = "BOLA " + str(ball_x) + " " + str(ball_y) + " " 
             #print(posBall)
             client_socket.send(posBall.encode())
         else:

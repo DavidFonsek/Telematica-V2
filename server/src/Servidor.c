@@ -7,7 +7,7 @@
 #include <sys/select.h>
 #include <pthread.h>
 
-#define PORT 8080
+#define PORT 5500
 #define MAX_CLIENTS 10
 
 typedef struct {
@@ -39,12 +39,16 @@ void *handle_client(void *data) {
             printf("Cliente %s se desconectó.\n", clients[client_index].name);
             pthread_exit(NULL);
         }
+
+        buffer[bytes_received] = '\0';
+        printf(buffer,"[ %s ]\n");
         
         // Envía el mensaje al compañero emparejado
         if (clients[client_index].paired) {
             int partner_index = clients[client_index].partner_index;
             send(clients[partner_index].client_socket, buffer, bytes_received, 0);
         }
+        memset(buffer,0,1024);
     }
 }
 
