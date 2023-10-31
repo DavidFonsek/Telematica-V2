@@ -6,8 +6,11 @@
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <pthread.h>
+#include "../include/logger.h"
+char* PORT;
+Logger logger;
 
-#define PORT 8083
+
 #define MAX_CLIENTS 10
 
 typedef struct {
@@ -22,6 +25,21 @@ typedef struct {
     int client_count;
     int client_index;
 } ThreadData;
+
+int checkArguments(int argc, char* argv[]){
+
+    if(argc < 3){
+        fprintf(stderr, "Too few arguments\n");
+        return 1;
+    }
+    if(argc > 3){
+        fprintf(stderr, "Too many arguments\n");
+        return 1;
+    }
+
+    return 0;
+    
+}
 
 void *handle_client(void *data) {
     ThreadData *thread_data = (ThreadData *)data;
@@ -43,9 +61,7 @@ void *handle_client(void *data) {
         }
 
         buffer[bytes_received] = '\0';
-
-        printf(buffer,"[%s]\n");
-        
+        logToFile(logger,buffer);        
         // Envía el mensaje al compañero emparejado
         if (clients[client_index].paired) {
             int partner_index = clients[client_index].partner_index;
@@ -55,7 +71,21 @@ void *handle_client(void *data) {
     }
 }
 
-int main() {
+int main(int argc, char* argv[]) {
+
+    
+    if(checkArguments(argc,argv)){
+        exit(1);
+    }
+
+    //Initialize PORT AND Logger
+    PORT = argv[1];
+    logger.printEnabled = 1;
+    logger.logfile = NULL;
+    logger.filename = NULL;
+
+    setFile(&logger, argv[2]);
+
     int server_socket, new_socket;
     struct sockaddr_in server_addr, new_addr;
     socklen_t addr_size;
@@ -67,10 +97,9 @@ int main() {
         perror("Error al crear el socket");
         exit(1);
     }
-    
-    printf("Servidor creado.\n");
+    logToFile(logger,"Servidor creado.");
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(PORT);
+    server_addr.sin_port = htons(atoi(PORT));
     server_addr.sin_addr.s_addr = INADDR_ANY;
     
     if (bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr)) < 0) {
@@ -113,6 +142,7 @@ int main() {
                 if (clients[i].client_socket == 0) {
                     char aux[5];
                     clients[i].client_socket = new_socket;
+                    logToFile(logger,"Nueva conexion cliente");
                     printf("Nueva conexión, cliente (%d)\n", new_socket);
                     recv(new_socket, clients[i].name, sizeof(clients[i].name), 0);
                     sprintf(aux, "%d", new_socket);
@@ -126,7 +156,6 @@ int main() {
                             clients[i].partner_index = j;
                             clients[j].partner_index = i;
                             printf("Emparejando a %s y %s\n", clients[i].name, clients[j].name);
-                            
                             // Crear hilos para manejar la comunicación entre las parejas emparejadas
                             ThreadData thread_data1;
                             thread_data1.clients = clients;

@@ -18,7 +18,7 @@ def receive_messages(client_socket):
     global punt_a 
     global punt_b 
 
-    
+
     while True:
 
 
@@ -55,6 +55,7 @@ def main():
 
     #host = "54.89.162.182"
     host = "54.89.162.182"
+    host = "127.0.0.1"
     port = 8080
     
 
@@ -66,7 +67,7 @@ def main():
     client_socket.connect((host, port))
 
     client_socket.send(name.encode())
-    aux = client_socket.recv(1).decode("utf-8")
+    aux = int(client_socket.recv(1).decode("utf-8")) +1 
     print(aux)
     receive_thread = threading.Thread(target=receive_messages, args=(client_socket,))
     receive_thread.start()
@@ -180,8 +181,15 @@ def main():
             ball_speed_y = ballVel * random.choice((1, -1))
 
         # Verificar si uno de los jugadores llegó a 7 puntos para terminar el juego
-        if score_a == 100 or score_b == 100:
+        
+        if score_a == 2:
+        
+            print("Gano jugador1")
             running = False
+        elif score_b == 2:
+            print("Gano jugador2")
+            running = False
+            
 
         # Limpiar la pantalla
         screen.fill((0, 0, 0))
