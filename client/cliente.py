@@ -17,14 +17,16 @@ def receive_messages(client_socket):
     global bola_y
     global punt_a 
     global punt_b 
+
+    
     while True:
 
 
-        data = client_socket.recv(1024).decode("utf-8")
+        data = client_socket.recv(50).decode("utf-8")
         # Analizar el mensaje para obtener la posición de la paleta derecha
 
         dat = data.split("|")[0].split()
-        print(f"{dat}")
+        print(f"{data}")
         
 
         if data.startswith("SUBIO ") or data.startswith("BAJO "):        
@@ -34,10 +36,12 @@ def receive_messages(client_socket):
                     new_paddle_b_y = float(value)
                 elif action == "BAJO":
                     new_paddle_b_y = float(value)
-        elif data.startswith("BOLA ") and int(aux) % 2 != 0:
+        elif data.startswith("BOLA ") and int(aux) % 2 != 0 and len(dat) == 3:
+                print(dat)  
                 bola_x = (WIDTH - 20) - float(dat[1])
                 bola_y = float(dat[2])
-        elif data.startswith("PUNTAJE ") and int(aux) % 2 != 0:
+        elif data.startswith("PUNTAJE ") and int(aux) % 2 != 0 and len(dat) == 3:
+                print(dat)
                 punt_a = int(dat[1])
                 punt_b = int(dat[2])
 
@@ -50,8 +54,8 @@ def main():
     global aux
 
     #host = "54.89.162.182"
-    host = "127.0.0.1"
-    port = 8083
+    host = "54.89.162.182"
+    port = 8080
     
 
     name = input("Ingrese su nombre: ") 
@@ -107,6 +111,18 @@ def main():
                 running = False
         keys = pygame.key.get_pressed()
 
+                # Actualizar la posición de la pelota
+        if int(aux) % 2 == 0:
+            ball_x += ball_speed_x
+            ball_y += ball_speed_y   
+
+            posBall = "BOLA " + str(ball_x) + " " + str(ball_y) + "|" 
+            #print(posBall)
+            client_socket.send(posBall.encode())
+        else:
+            ball_x = bola_x
+            ball_y = bola_y
+
         pos = ''
         if keys[pygame.K_w] and paddle_a_y > 0:
             paddle_a_y -= paddle_speed
@@ -123,23 +139,13 @@ def main():
         paddle_b_y = new_paddle_b_y
 
         if int(aux) % 2 == 0:
-            puntaje = "PUNTAJE " + str(score_a) + " " + str(score_b) + "|"
+            puntaje = "PUNTAJE " + str(score_a) + " " + str(score_b) + "|" 
             client_socket.send(puntaje.encode())
         else:
             score_a = punt_a
             score_b = punt_b
 
-        # Actualizar la posición de la pelota
-        if int(aux) % 2 == 0:
-            ball_x += ball_speed_x
-            ball_y += ball_speed_y   
 
-            posBall = "BOLA " + str(ball_x) + " " + str(ball_y) + "|" 
-            #print(posBall)
-            client_socket.send(posBall.encode())
-        else:
-            ball_x = bola_x
-            ball_y = bola_y
 
         # Colisiones de la pelota con las paredes
         if ball_y <= 0 or ball_y >= HEIGHT - 20:
